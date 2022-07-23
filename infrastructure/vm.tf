@@ -36,9 +36,23 @@ resource "azurerm_linux_virtual_machine" "Linuxvm" {
     azurerm_network_interface.labnic.id,
   ]
 
+  connection {
+    type        = "ssh"
+    user        = var.user
+    private_key = file(var.path_privatekey)
+    host        = self.public_ip_address
+  }
+
   admin_ssh_key {
     username   = "adminuser"
     public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDGNReN8qtWGfBL96RbTip2cz/2p1D8CtZIH3uzZj0Ikd9Qc70Hh/3qfDXkP+d1KH+wFfcr0C1gpgBaf0qZRJZsup183lmxSUjtv/6kChNXWMcxo7GavOQmTXRIsX4DOUEt7+N1wWCEKB28rrVBqJzBYh3h0Ll1WyHK16QDunul8Dz360ENZ2r8CFtRODPMSi8OcEP+cSvJV+wXC/7LqCNOxjApE9WFdLiTjXItyfWghNqdtXeWj4vEM3sPqM9rB92zH/MtFSCnsC2qxg18TfY8sWWh/KJiBrBa/wVu/GGJ5TNOlo8C9RuLEBieUUy4l58JtSfre+7maqEFjS6JwsI11oW8/PfroYz2wGYqNr8WSBBaOR2r6dDgktucmsoHcN1CzPaPLDlGt/LWrJh/Sl0y7cFpyBP2OeZKKUcfhgFNaA+KT+N6EnzXFa2+bIb9t+at5FaErMZG0ITyStBaPvmRNiTjTJ1lQYlw9RchlV7Syx6PXOpVQ2yWZEgrWojkT7E= lbena@LAPTOP-QB0DU4OG"
+  }
+  provisioner "file" {
+    source      = "./scripts/script.sh"
+    destination = "/tmp/script.sh"
+  }
+  provisioner "local-exec" {
+    command = "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u ${var.user} -i '${self.public_ip_address},' --private-key ${var.path_privatekey} ansibleplaybooks/nginx.yml -vv"
   }
 
   os_disk {
