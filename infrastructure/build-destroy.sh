@@ -2,6 +2,6 @@
 
 terraform apply --auto-approve
 
-sleep 40
+sleep 420
 
 terraform destroy --auto-approve
